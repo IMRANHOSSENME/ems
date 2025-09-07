@@ -255,7 +255,7 @@ def delete_category(request, category_id):
 
 
 # RSVP to Event
-@login_required
+@login_required(redirect_field_name=None, login_url='/signin/')
 def rsvp_event(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     if request.method == 'POST':
