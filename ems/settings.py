@@ -148,11 +148,7 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
 #Frontend URL (for activation links)
 #Frontend URL (for activation links)
-FRONTEND_URL = [
-    "http://localhost:3000",
-    "http://127.0.0.1:8000",
-    "https://ems-begt.onrender.com"
-]
+FRONTEND_URL = "https://ems-begt.onrender.com"
 CSRF_TRUSTED_ORIGINS = [
     "https://ems-begt.onrender.com"
 ]
