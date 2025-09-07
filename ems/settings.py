@@ -147,7 +147,10 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
 
 #Frontend URL (for activation links)
-FRONTEND_URL = "http://127.0.0.1:8000"
+FRONTEND_URL = "https://ems-begt.onrender.com"
+CSRF_TRUSTED_ORIGINS = [
+    "https://ems-begt.onrender.com"
+]
 
 #404 Page settings
 HANDLER404 = 'core.views.not_found_404'
