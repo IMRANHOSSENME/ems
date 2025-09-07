@@ -1,0 +1,92 @@
+{% extends base_template %}
+{% load static %}
+{% block title %}Event Details{% endblock title %}
+{% block content %}
+<!-- Event Details Section -->
+<section id="event-details-section" class="mt-6">
+    <div class="bg-white p-4 rounded-md shadow-sm">
+        <h2 class="text-xl font-bold mb-4 text-center">Event Details</h2>
+
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-4">
+                <div class="bg-white p-4 rounded-md shadow-sm">
+                    <h3 class="font-semibold text-lg mb-2">Event Name: {{ event.name }}</h3>
+                    <p class="text-gray-600 mb-1"><span class="font-semibold">Date:</span> {{ event.date|date:"F j, Y" }}</p>
+                    <p class="text-gray-600 mb-1"><span class="font-semibold">Location:</span> {{ event.location }}</p>
+                    <p class="text-gray-600 mb-1"><span class="font-semibold">Category:</span> {{ event.category.name }}</p>
+                    <p class="text-gray-600 mb-1"><span class="font-semibold">Participants:</span> {{ event.participants.count }}</p>
+                    <p class="text-gray-600 mb-1"><span class="font-semibold">Status:</span> Upcoming</p>
+                </div>
+
+                <div class="bg-white p-4 rounded-md shadow-sm">
+                    <h3 class="font-semibold text-lg mb-2">Organizer Details</h3>
+                    <p class="text-gray-600 mb-1"><span class="font-semibold">Name:</span> {{ event.organizer.get_full_name }}</p>
+                    <p class="text-gray-600 mb-1"><span class="font-semibold">Email:</span> {{ event.organizer.email }}</p>
+                </div>
+            </div>
+
+            <div class="">
+                <div class="bg-white p-4 rounded-md shadow-sm">
+                    <p class="text-gray-600 mb-1"><span class="font-semibold">Description:</span> {{ event.description }}</p>
+                </div>
+                <div class="bg-white p-4 rounded-md shadow-sm">
+                    <img src="{{ event.image.url }}" alt="Event Image"
+                        class="w-full h-48 sm:h-64 object-cover rounded-md">
+                </div>
+            </div>
+        </div>
+
+        <!-- Participant List -->
+        <div class="bg-white p-4 rounded-md shadow-sm">
+            <h3 class="font-semibold text-lg mb-2 text-center">Participants</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full border-collapse border border-gray-300 text-sm sm:text-base">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="px-2 sm:px-4 py-2 text-left">ID</th>
+                            <th class="px-2 sm:px-4 py-2 text-left">First Name:</th>
+                            <th class="px-2 sm:px-4 py-2 text-left">Last Name:</th>
+                            <th class="px-2 sm:px-4 py-2 text-left">Email:</th>
+                            <!-- <th class="px-2 sm:px-4 py-2 text-left">Actions:</th> -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for participant in event.participants.all %}
+                        <tr class="border-t">
+                            <td class="px-2 sm:px-4 py-2">{{ participant.id }}</td>
+                            <td class="px-2 sm:px-4 py-2">{{ participant.first_name }}</td>
+                            <td class="px-2 sm:px-4 py-2">{{ participant.last_name }}</td>
+                            <td class="px-2 sm:px-4 py-2">{{ participant.email }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col justify-center items-center sm:flex-row gap-2 mt-4">
+            <button class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-full sm:w-auto">Edit
+                Event</button>
+            <button class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 w-full sm:w-auto">Delete
+                Event</button>
+        </div>
+    </div>
+</section>
+
+<!-- Script -->
+<script>
+    function openModal() {
+        document.getElementById("deleteModal").classList.remove("hidden");
+        document.getElementById("deleteModal").classList.add("flex");
+    }
+    function closeModal() {
+        document.getElementById("deleteModal").classList.add("hidden");
+        document.getElementById("deleteModal").classList.remove("flex");
+    }
+</script>
+{% block footer %}
+{% include 'footer.html' %}
+{% endblock footer %}
+{% endblock content %}

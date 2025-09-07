@@ -1,0 +1,94 @@
+{% extends base_template %}
+{% load static %}
+{% block title %}Create Event{% endblock title %}
+{% block content %}
+<form action="" method="POST" enctype="multipart/form-data"
+    class="max-w-md w-full mx-auto my-8 p-4 sm:p-6 bg-white rounded shadow-md">
+    {% csrf_token %}
+    <h1 class="text-2xl md:text-3xl font-bold flex justify-center mb-6">Create Event</h1>
+    <div class="mb-4">
+        <label for="event-name" class="block text-sm font-medium text-gray-700">Name:</label>
+        <input type="text" id="event-name" name="name" class="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            required>
+    </div>
+    <div class="mb-4">
+        <label for="event-description" class="block text-sm font-medium text-gray-700">Description:</label>
+        <input type="text" id="event-description" name="description"
+            class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+    </div>
+    <div class="mb-4">
+        <label for="event-datetime" class="block text-sm font-medium text-gray-700">Date & Time:</label>
+        <input type="datetime-local" id="event-datetime" name="datetime"
+            class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+    </div>
+    <div class="mb-4">
+        <label for="event-location" class="block text-sm font-medium text-gray-700">Location:</label>
+        <input type="text" id="event-location" name="location"
+            class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+    </div>
+    <div class="mb-4">
+        <label for="category-name" class="block text-sm font-medium text-gray-700">Category Name:</label>
+        <input type="text" id="category-name" name="category_name"
+            class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+    </div>
+    <div class="mb-4">
+        <label for="category-description" class="block text-sm font-medium text-gray-700">Category Description:</label>
+        <input type="text" id="category-description" name="category_description"
+            class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+    </div>
+    <div class="mb-4">
+        <label for="event-image" class="block text-sm font-medium text-gray-700">Image:</label>
+        <input type="file" id="event-image" name="image" class="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            required>
+    </div>
+    <div class="mb-4">
+        <label for="event-participants" class="block text-sm font-medium text-gray-700">Participants</label>
+        <div class="flex">
+            <select id="event-participants" name="participants"
+                class="mt-1 block w-full border border-gray-300 rounded-md p-2" multiple>
+                {% for user in users %}
+                <option value="{{ user.id }}"
+                    {% if selected_participants and user.id in selected_participants %}selected{% endif %}>
+                    {{ user.get_full_name }}</option>
+                {% endfor %}
+            </select>
+            <button type="button" id="add-participant" class="bg-green-500 text-white rounded-md p-2 ml-2">Add</button>
+        </div>
+        <ul id="selected-participants" class="mt-2 list-disc list-inside text-gray-700">
+            <!-- Selected events will be added here -->
+        </ul>
+    </div>
+    <div class="flex justify-center mt-6">
+        <button type="submit" class="bg-blue-500 text-white rounded-md p-2 w-full sm:w-auto">Create Event</button>
+    </div>
+</form>
+
+
+<script>
+    document.getElementById('add-participant').addEventListener('click', function () {
+        const eventSelect = document.getElementById('event-participants');
+        const selectedEventsList = document.getElementById('selected-participants');
+        const selectedValue = eventSelect.value;
+        const selectedText = eventSelect.options[eventSelect.selectedIndex].text;
+
+        if (selectedValue && !Array.from(selectedEventsList.children).some(li => li.dataset.value === selectedValue)) {
+            const li = document.createElement('li');
+            li.dataset.value = selectedValue;
+            li.textContent = selectedText;
+
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.className = 'ml-2 text-red-500';
+            deleteButton.addEventListener('click', function () {
+                selectedEventsList.removeChild(li);
+            });
+
+            li.appendChild(deleteButton);
+            selectedEventsList.appendChild(li);
+        }
+    });
+</script>
+{% block footer %}
+{% include 'footer.html' %}
+{% endblock footer %}
+{% endblock content %}

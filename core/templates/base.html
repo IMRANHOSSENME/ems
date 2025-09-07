@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="{% static 'css/output.css' %}" rel="stylesheet">
+    <script src="{% static 'js/script.js' %}"></script>
+    <title>{% block title %}Home{% endblock title %}</title>
+</head>
+
+<body class="px-2 md:px-20 bg-gray-100">
+
+    {% comment %} header sesion {% endcomment %}
+    <header
+        class="flex flex-col md:flex-row md:items-center md:justify-between p-4 bg-white shadow sticky top-0 z-50 w-full max-w-screen mx-auto">
+        <div class="flex items-center justify-between w-full md:w-auto">
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-700">EMS</h1>
+            <button id="nav-toggle" class="md:hidden text-2xl focus:outline-none ml-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="w-8 h-8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 6.75h15m-15 5.25h15m-15 5.25h15" />
+                </svg>
+            </button>
+        </div>
+        <div class="flex items-center mt-2 md:mt-0 w-full md:w-auto justify-between md:justify-end md:space-x-4">
+            <form method="get" action="#" class="flex items-center flex-1 md:flex-none md:mr-2">
+                <label for="search" class="sr-only">Search</label>
+                <input type="text" id="search" name="q" placeholder="Search..."
+                    class="border border-gray-300 rounded-md p-2 w-full md:w-auto focus:border-blue-500 focus:outline-none transition-colors" />
+                <button type="submit"
+                    class="bg-blue-500 text-white rounded-md p-2 ml-2 hidden md:block hover:bg-blue-600 transition-colors">Search</button>
+            </form>
+        </div>
+        <nav id="nav-menu"
+            class="hidden md:flex flex-col md:flex-row md:items-center w-full md:w-auto mt-2 md:mt-0 bg-white md:bg-transparent absolute md:static left-0 top-16 md:top-0 z-40 md:z-auto border md:border-0 rounded md:rounded-none shadow md:shadow-none md:ml-8">
+            <a href="/" class="block px-4 py-2 text-gray-700 hover:text-blue-600 md:mx-2 transition-colors">Home</a>
+            <a href="/about" class="block px-4 py-2 text-gray-700 hover:text-blue-600 md:mx-2 transition-colors">About</a>
+            <a href="/events" class="block px-4 py-2 text-gray-700 hover:text-blue-600 md:mx-2 transition-colors">Events</a>
+            <a href="/contact" class="block px-4 py-2 text-gray-700 hover:text-blue-600 md:mx-2 transition-colors">Contact</a>
+            {% if user.is_authenticated %}
+                <a href="/dashboard" class="block px-4 py-2 text-gray-700 hover:text-blue-600 md:mx-2 transition-colors">Dashboard</a>
+            {% else %}
+                <button
+                class="bg-blue-500 text-white rounded-md px-3 py-1 mx-1 hover:bg-blue-600 transition-colors"><a href="/signup">Signup</a></button>
+            <button
+                class="bg-blue-500 text-white rounded-md px-3 py-1 mx-1 hover:bg-blue-600 transition-colors"><a href="/signin">Login</a></button>
+            {% endif %}
+        </nav>
+
+    </header>
+
+    <script>
+        // Toggle navigation menu for mobile view
+        const navToggle = document.getElementById('nav-toggle');
+        const navMenu = document.getElementById('nav-menu');
+        if (navToggle) {
+            navToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('hidden');
+            });
+        }
+
+        // Close nav menu when clicking outside (mobile)
+        document.addEventListener('click', function (e) {
+            if (!navMenu.contains(e.target) && !navToggle.contains(e.target) && window.innerWidth < 768) {
+                navMenu.classList.add('hidden');
+            }
+        });
+    </script>
+
+    <main>
+        {% block content %}
+        {% endblock content %}
+    </main>
+</body>
+
+</html>

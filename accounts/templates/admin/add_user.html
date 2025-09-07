@@ -1,0 +1,96 @@
+{% extends "admin/header.html" %}
+{% load static %}
+{% block title %}Add New User{% endblock title %}
+{% block content %}
+<div class="shadow-xl rounded-xl p-6 sm:p-8 bg-white w-full max-w-sm sm:max-w-md mx-auto">
+    <h1 class="text-2xl font-bold mb-6 text-center text-gray-800">Sign Up</h1>
+    <form action="" method="POST" class="space-y-4">
+        {% csrf_token %}
+
+        <!-- First Name -->
+        <div>
+            <label for="first-name" class="block mb-1 text-gray-700 font-medium">First Name</label>
+            <input type="text" id="first-name" name="first_name" required
+                class="border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+        </div>
+
+        <!-- Last Name -->
+        <div>
+            <label for="last-name" class="block mb-1 text-gray-700 font-medium">Last Name</label>
+            <input type="text" id="last-name" name="last_name" required
+                class="border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+        </div>
+
+        <!-- Username -->
+        <div>
+            <label for="username" class="block mb-1 text-gray-700 font-medium">Username</label>
+            <input type="text" id="username" name="username" required
+                class="border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+        </div>
+
+        <!-- Email -->
+        <div>
+            <label for="email" class="block mb-1 text-gray-700 font-medium">Email</label>
+            <input type="email" id="email" name="email" required
+                class="border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+        </div>
+
+        <!-- Password -->
+        <div>
+            <label for="password" class="block mb-1 text-gray-700 font-medium">Password</label>
+            <input type="password" id="password" name="password" required
+                class="border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+        </div>
+
+        <!-- Confirm Password -->
+        <div>
+            <label for="confirm-password" class="block mb-1 text-gray-700 font-medium">Confirm Password</label>
+            <input type="password" id="confirm-password" name="confirm_password" required
+                class="border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+        </div>
+
+        <!-- Role (Group) -->
+        <div class="mb-4">
+            <label for="role" class="block mb-1 text-gray-700 font-medium">Role (Group)</label>
+            <select id="role" name="role" required
+                class="border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+                <option value="">Select Role</option>
+                {% for group in groups %}
+                <option value="{{ group.id }}">{{ group.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold p-2 rounded w-full transition">Created</button>
+    </form>
+    <p class="mt-4 text-center text-gray-600">Dashboard <a href="/accounts/admin/dashboard"
+            class="text-blue-600 hover:underline">Go to Dashboard</a></p>
+</div>
+</div>
+
+{% if messages %}
+<div id="popup-message" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+    <div class="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full text-center">
+        {% for message in messages %}
+        <span id="popup-text" class="{% if message.tags == 'error' %}text-red-500{% else %}text-green-500{% endif %}">
+            {{ message }}
+        </span>
+        {% endfor %}
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const msgDivs = document.getElementById('popup-message') ? [document.getElementById('popup-message')] : [];
+        if (msgDivs.length > 0) {
+            setTimeout(() => {
+                msgDivs.forEach(div => div.style.display = 'none');
+            }, 2000);
+        }
+    });
+</script>
+{% endif %}
+
+{% block footer %}
+{% include 'footer.html' %}
+{% endblock footer %}
+{% endblock content %}

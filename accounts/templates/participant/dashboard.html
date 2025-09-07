@@ -1,0 +1,76 @@
+{% extends 'participant/base.html' %}
+{% load static %}
+{% block title %}Participant Dashboard{% endblock title %}
+{% block content %}
+<!-- Participating Events Section -->
+<section id="event-list">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+        {% for event in events %}
+        <div class="bg-white shadow-sm p-4 rounded relative">
+            <div>
+                <img class="w-full h-full md:h-48 lg:h-60 object-cover rounded-t-lg" src="{{ event.image.url }}"
+                    alt="{{ event.name }}" />
+            </div>
+            <div class="absolute top-4 left-4 bg-gray-100 m-2 p-1 rounded">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                </svg>
+            </div>
+            <div class="absolute top-4 right-4 bg-blue-500 text-white p-2 rounded-br m-2">
+                <h2 class="text-lg font-bold">{{ event.date|date:"d" }}</h2>
+                <p class="text-sm">{{ event.date|date:"M" }}</p>
+            </div>
+            <h3 class="text-xl font-bold mb-2">{{ event.name }}</h3>
+            <p class="mb-2">Description: {{ event.description|truncatewords:10 }}.</p>
+            <p>Category: {{ event.category.name }}</p>
+            <p class="mb-2">Date: {{ event.date|date:"Y-m-d" }}</p>
+            <p class="mb-2">Location: {{ event.location }}</p>
+
+            <div class="flex justify-between items-center">
+            <button class="bg-blue-500 text-white p-2 rounded mt-2" data-id="{{ event.id }}"
+                data-name="{{ event.name }}" data-description="{{ event.description }}"
+                data-category="{{ event.category.name }}" data-date="{{ event.date|date:'Y-m-d' }}"
+                data-image="{{ event.image.url }}" data-location="{{ event.location }}"
+                onclick="showEventDetailsFromButton(this)">Show Details</button>
+            {% if user.is_authenticated %}
+                {% if event.id in user_rsvp_event_ids %}
+                    <button class="bg-green-500 text-white p-2 rounded mt-2 cursor-not-allowed" disabled>RSVP'd</button>
+                {% else %}
+                    <form action="{% url 'rsvp_event' event.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="bg-blue-500 text-white p-2 rounded mt-2" disabled>You are already Interested</button>
+                    </form>
+                {% endif %}
+            {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-3 text-center py-8 text-gray-500 text-lg font-semibold">
+            No events found.
+        </div>
+        {% endfor %}
+    </div>
+    <!-- Event Details Modal -->
+    <div id="event-details"
+        class="fixed inset-0 flex items-center justify-center opacity-0 hidden transition-opacity duration-300 z-50">
+        <div
+            class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md transform scale-90 transition-transform duration-300 relative">
+            <button onclick="closeEventDetails()"
+                class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            <img id="event-img" src="" alt="Event Image" class="w-full h-48 object-cover rounded mb-4" />
+            <h2 id="event-name" class="text-2xl font-bold mb-2"></h2>
+            <p id="event-description" class="mb-2"></p>
+            <p id="event-category" class="mb-2 font-semibold"></p>
+            <p id="event-date-full" class="mb-2 font-semibold"></p>
+            <p id="event-location" class="mb-2 font-semibold"></p>
+        </div>
+    </div>
+</section>
+
+<script src="{% static 'js/script.js' %}"></script>
+{% block footer %}
+{% include "footer.html" %}
+{% endblock footer %}
+{% endblock content %}

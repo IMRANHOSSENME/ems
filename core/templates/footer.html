@@ -1,0 +1,59 @@
+{% load static %}
+{% block footer %}
+{% comment %} Footer Section {% endcomment %}
+<footer>
+    <div class="bg-gray-800 p-6 rounded-t-lg  mx-auto">
+        <div>
+            <h2 class="text-center text-white font-bold text-lg">EMS</h2>
+            <p class="text-center text-gray-300">Your one-stop solution for all event management needs.</p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+
+            <!-- About Us -->
+            <div>
+                <h2 class="text-white font-semibold text-lg">About Us</h2>
+                <p class="text-gray-300 mt-2">We are a leading event management company dedicated to organizing
+                    unforgettable experiences.</p>
+            </div>
+
+            <!-- Contact Information -->
+            <div>
+                <h2 class="text-white font-semibold text-lg">Contact Information</h2>
+                <div class="mt-4 space-y-2">
+                    <p class="text-gray-300">Email: info@darkeventmanagement.com</p>
+                    <p class="text-gray-300">Phone: +880 17XXXXXXX</p>
+                    <p class="text-gray-300">Address: 21 Maskanda 2200, Mymensingh, Bangladesh</p>
+                </div>
+            </div>
+
+            <!-- Social Media Links -->
+            <div>
+                <h2 class="text-white font-semibold text-lg">Follow Us</h2>
+                <div class="">
+                    <p class="text-gray-300"><a href="#" class="text-blue-500 hover:underline">Facebook</a></p>
+                    <p class="text-gray-300"><a href="#" class="text-blue-400 hover:underline">Twitter</a></p>
+                    <p class="text-gray-300"><a href="#" class="text-pink-500 hover:underline">Instagram</a></p>
+                </div>
+            </div>
+
+            <!-- Coverage District -->
+            <div>
+                <h2 class="text-white font-semibold text-lg">Coverage District</h2>
+                <ul class="list-disc list-inside text-gray-300 mt-2 space-y-1">
+                    <li>Dhaka</li>
+                    <li>Mymensingh</li>
+                    <li>Chottogram</li>
+                    <li>Cox's Bazar</li>
+                    <li>Khulna</li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Copyright -->
+    <div class="bg-gray-900 p-4 rounded border-t border-gray-100 mx-auto">
+        <p class="text-center text-gray-400 text-sm">© 2025 EMS. All rights reserved.</p>
+    </div>
+</footer>
+{% endblock footer %}
