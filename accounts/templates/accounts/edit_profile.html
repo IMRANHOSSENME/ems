@@ -1,0 +1,113 @@
+{% extends "accounts/sidebar.html" %}
+{% load static %}
+{% block page_content %}
+<!-- Error/Success Messages -->
+{% if messages %}
+    <div>
+        {% for message in messages %}
+            <div class="text-red-600 mb-2">{{ message }}</div>
+        {% endfor %}
+    </div>
+{% endif %}
+<!-- Edit Profile Card -->
+<div id="editCard" class="bg-white rounded-2xl shadow-lg p-8">
+    <h2 class="text-2xl font-bold mb-6 text-gray-900">Edit Profile</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-4 flex flex-col items-center">
+            {% if user.profile_picture %}
+                <img id="profilePreview" src="{{ user.profile_picture.url }}" alt="Profile Picture"
+                    class="w-20 h-20 rounded-full mb-2 border-4 border-indigo-400 shadow">
+            {% else %}
+                <img id="profilePreview" src="{% static 'images/profiles/user01.png' %}" alt="Profile Picture"
+                    class="w-20 h-20 rounded-full mb-2 border-4 border-indigo-400 shadow">
+            {% endif %}
+                <input type="file" id="editProfilePic" name="profile_picture"
+                class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-200">
+            <script>
+            document.getElementById('editProfilePic').addEventListener('change', function(e) {
+                const [file] = e.target.files;
+                if (file) {
+                    document.getElementById('profilePreview').src = URL.createObjectURL(file);
+                }
+            });
+            </script>
+            <script>
+            document.getElementById('editProfilePic').addEventListener('change', function(e) {
+                const [file] = e.target.files;
+                if (file) {
+                    document.getElementById('profilePreview').src = URL.createObjectURL(file);
+                }
+            });
+            </script>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 font-medium mb-1">Username</label>
+            <input type="text" id="editName" name="username"
+                class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                value="{{ user.username }}">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-1">Email</label>
+                <input type="email" id="editEmail" name="email"
+                    class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    value="{{ user.email }}">
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 font-medium mb-1">First Name</label>
+            <input type="text" id="editFirstName" name="first_name"
+                class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                value="{{ user.first_name }}">
+            <label class="block text-gray-700 font-medium mb-1">Last Name</label>
+            <input type="text" id="editLastName" name="last_name"
+                class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                value="{{ user.last_name }}">
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 font-medium mb-1">About</label>
+            <textarea id="editAbout" name="bio"
+                class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-200">{{ user.bio }}</textarea>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 font-medium mb-1">Location</label>
+            {% if user.profile %}
+                    <input type="text" id="editLocation" name="location"
+                    class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    value="{{ user.profile.location|default:'N/A' }}">
+            {% else %}
+                    <input type="text" id="editLocation" name="location"
+                    class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    value="N/A">
+            {% endif %}
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 font-medium mb-1">Phone</label>
+            {% if user.profile %}
+                    <input type="text" id="editPhone" name="phone_number"
+                    class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                        value="{{ user.profile.phone|default:'N/A' }}">
+            {% else %}
+                    <input type="text" id="editPhone" name="phone_number"
+                    class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    value="N/A">
+            {% endif %}
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 font-medium mb-1">Gender</label>
+                <select id="editGender" name="gender"
+                class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                <option value="Male" {% if user.profile and user.profile.gender == "Male" %}selected{% endif %}>Male</option>
+                <option value="Female" {% if user.profile and user.profile.gender == "Female" %}selected{% endif %}>Female</option>
+                <option value="Other" {% if user.profile and user.profile.gender == "Other" %}selected{% endif %}>Other</option>
+            </select>
+        </div>
+        <button type="submit"
+            class="bg-indigo-500 text-white px-6 py-2 rounded-lg font-semibold shadow hover:bg-indigo-600 transition">Save
+            Changes</button>
+    </form>
+</div>
+{% block footer %}
+{% include "footer.html" %}
+{% endblock footer %}
+
+{% endblock page_content %}

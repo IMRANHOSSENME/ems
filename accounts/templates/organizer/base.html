@@ -55,9 +55,12 @@
                 </button>
                 <div id="user-menu"
                     class="hidden absolute right-0 md:right-0 mt-2 bg-white border border-gray-300 rounded shadow-md min-w-[150px]">
-                    <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
-                    <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Settings</a>
-                    <a href="/signout" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</a>
+                    <a href="{% url 'profile_view' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
+                    <a href="{% url 'settings_view' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Settings</a>
+                    <form action="{% url 'signout' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</button>
+                    </form>
                 </div>
             </div>
         </div>

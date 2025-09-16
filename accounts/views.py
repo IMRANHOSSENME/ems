@@ -1,6 +1,6 @@
 import token
 from django.shortcuts import render, HttpResponse , redirect
-from django.contrib.auth.models import User
+from accounts.models import MyUser as User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib import messages
@@ -9,8 +9,18 @@ from events import models
 from events.models import Event ,Category , RSVP
 from django.db.models import Prefetch
 from django.utils import timezone
+from django.contrib.auth.views import PasswordChangeView , PasswordChangeDoneView, PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse_lazy
+from django.views import View
+from accounts.forms import UserUpdateForm
 
+class CustomPasswordChangeView(PasswordChangeView):
+    # template_name = 'accounts/password_change.html'
 
+    def form_valid(self, form):
+        messages.success(self.request, 'Password changed successfully.')
+        return super().form_valid(form)
 
 
 #Account Activation Check
@@ -40,8 +50,9 @@ def is_organizer(user):
 def is_participant(user):
     return user.groups.filter(name='Participant').exists()
 
+
 #Dashboards and User Management
-def dashboard_redirect(request):
+def dashboard_redirect(request, user=None):
     if not request.user.is_authenticated:
         return redirect('/signin/')
     if is_admin(request.user):
@@ -53,6 +64,7 @@ def dashboard_redirect(request):
     else:
         messages.error(request, 'No role assigned. Please contact admin.')
         return redirect('/signin')
+
 
 # Create Roles
 @login_required(redirect_field_name=None, login_url='/signin/')
@@ -86,35 +98,39 @@ def create_role(request):
 
 
 #Admin Dashboard
-@login_required(redirect_field_name=None, login_url='/signin/')
-def admin_dashboard(request):
-    if not is_admin(request.user):
-        print("Unauthorized access attempt by user:", request.user)
-        return redirect('/404')
-    events = Event.objects.select_related('category', 'organizer').prefetch_related('participants').all().order_by('-date')
-    total_events = events.count()
-    upcoming_events = events.filter(date__gt=timezone.now()).count()
-    completed_events = events.filter(date__lt=timezone.now()).count()
-    today_events = events.filter(date=timezone.now().date())
-    users = User.objects.all()
-    catagorys = Category.objects.all()
-    from django.db.models import Count
+class AdminDashboardView(LoginRequiredMixin, View):
+    login_url = '/signin/'
+    redirect_field_name = None
 
-    total_events_interested = Event.objects.aggregate(total=Count('participants', distinct=True))['total']
-    # all_going_users = User.objects.filter(rsvps__status='going').distinct()
+    def get(self, request):
+        if not is_admin(request.user):
+            print("Unauthorized access attempt by user:", request.user)
+            return redirect('/404')
 
-    CONTEXT = {
-        'events': events,
-        'user': users,
-        'catagorys': catagorys,
-        'today_events': today_events,
-        'total_events': total_events,
-        'upcoming_events': upcoming_events,
-        'completed_events': completed_events,
-        'total_interested': total_events_interested
-    }
+        events = Event.objects.select_related('category', 'organizer').prefetch_related('participants').all().order_by('-date')
+        total_events = events.count()
+        upcoming_events = events.filter(date__gt=timezone.now()).count()
+        completed_events = events.filter(date__lt=timezone.now()).count()
+        today_events = events.filter(date=timezone.now().date())
+        users = User.objects.all()
+        catagorys = Category.objects.all()
+        from django.db.models import Count
 
-    return render(request, 'admin/dashboard.html', CONTEXT)
+        total_events_interested = Event.objects.aggregate(total=Count('participants', distinct=True))['total']
+        # all_going_users = User.objects.filter(rsvps__status='going').distinct()
+
+        CONTEXT = {
+            'events': events,
+            'user': users,
+            'catagorys': catagorys,
+            'today_events': today_events,
+            'total_events': total_events,
+            'upcoming_events': upcoming_events,
+            'completed_events': completed_events,
+            'total_interested': total_events_interested
+        }
+
+        return render(request, 'admin/dashboard.html', CONTEXT)
 
 
 # Organizer Dashboard
@@ -235,4 +251,57 @@ def delete_user(request, user_id):
     return redirect('/accounts/admin/dashboard')
 
 
+def settings_view(request):
+    return render(request, 'accounts/settings.html', {'user': request.user})
 
+# View Profile
+class ProfileView(LoginRequiredMixin, View):
+    def get(self, request):
+        user = request.user
+        role = 'Admin' if is_admin(user) else 'Organizer' if is_organizer(user) else 'Participant' if is_participant(user) else 'No Role'
+        return render(request, 'accounts/profile.html', {'user': user, 'role': role})
+
+# Edit Profile
+class EditProfileView(LoginRequiredMixin, View):
+    def get(self, request, user_id=None):
+        if user_id:
+            user = User.objects.get(pk=user_id)
+        else:
+            user = request.user
+        return render(request, 'accounts/edit_profile.html', {'user': user})
+
+    def post(self, request, user_id=None):
+        if user_id:
+            user = User.objects.get(pk=user_id)
+        else:
+            user = request.user
+            
+        user.first_name = request.POST.get('first_name', user.first_name)
+        user.last_name = request.POST.get('last_name', user.last_name)
+        user.email = request.POST.get('email', user.email)
+        user.username = request.POST.get('username', user.username)
+        user.bio = request.POST.get('bio', user.bio)
+        user.location = request.POST.get('location', user.location)
+        user.phone_number = request.POST.get('phone_number', user.phone_number)
+        user.gender = request.POST.get('gender', user.gender)
+        if 'profile_picture' in request.FILES:
+            user.profile_picture = request.FILES['profile_picture']
+        form = UserUpdateForm(request.POST, request.FILES, instance=user)
+        if form.is_valid():
+            form.save()
+        elif form.errors:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+            return redirect(f'/accounts/profile/edit/{user.id}/')
+        messages.success(request, 'Profile updated successfully.')
+        return redirect('/accounts/profile/')
+
+# Password Change Views
+class CustomPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
+    template_name = 'accounts/password_change.html'
+    success_url = reverse_lazy('password_change_done')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Password changed successfully.')
+        return super().form_valid(form)

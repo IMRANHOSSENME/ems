@@ -1,0 +1,49 @@
+{% extends "accounts/sidebar.html" %}
+{% load static %}
+{% block title %}Profile{% endblock title %}
+{% block page_content %}
+<!-- View Profile Card -->
+<div id="viewCard" class="bg-white rounded-2xl shadow-lg p-8">
+    <div class="flex flex-col items-center">
+                {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="Profile Picture"
+                                class="w-28 h-28 rounded-full mb-4 border-4 border-indigo-400 shadow">
+                {% else %}
+                        <img src="{% static 'images/profiles/user01.png' %}" alt="Profile Picture"
+                                class="w-28 h-28 rounded-full mb-4 border-4 border-indigo-400 shadow">
+                {% endif %}
+        <h2 class="text-3xl font-bold mb-2 text-gray-900">{{ user.first_name }} {{ user.last_name|upper }}</h2>
+        <span
+            class="mb-2 px-4 py-1 text-sm bg-indigo-100 text-indigo-700 rounded-full font-medium">{{ role|default:"No role assigned" }}</span>
+    </div>
+    <div>
+        <p class="text-gray-600 mb-1"><span class="font-semibold text-gray-800">Bio:</span> <span
+                id="profileAbout">{{ user.bio|default:"No bio provided." }}</span></p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+        <div>
+            <h1 class="text-xl font-semibold text-gray-800">Personal Information</h1>
+            <p class="text-gray-600 mb-1"><span class="font-semibold text-gray-800">Username:</span> <span
+                    id="profileEmail">{{ user.username|lower }}</span></p>
+            <p class="text-gray-600 mb-1"><span class="font-semibold text-gray-800">Email:</span> <span
+                    id="profileEmailFull">{{ user.email }}</span></p>
+            <p class="text-gray-600 mb-1"><span class="font-semibold text-gray-800">Phone:</span> <span
+                    id="profilePhone">{{ user.profile.phone|default:"N/A" }}</span></p>
+            <p class="text-gray-600 mb-1"><span class="font-semibold text-gray-800">Location:</span> <span
+                    id="profileLocation">{{ user.profile.location|default:"N/A" }}</span></p>
+            <p class="text-gray-600 mb-1"><span class="font-semibold text-gray-800">Gender:</span> <span
+                    id="profileGender">{{ user.gender|default:"N/A" }}</span></p>
+        </div>
+        <div>
+            <h1 class="text-xl font-semibold text-gray-800">Account Information</h1>
+            <p class="text-gray-600 mb-1"><span class="font-semibold text-gray-800">Member since:</span> <span
+                    id="profileMemberSince">{{ user.date_joined }}</span></p>
+            <p class="text-gray-600 mb-1"><span class="font-semibold text-gray-800">Last Login:</span> <span
+                    id="profileLastLogin">{{ user.last_login }}</span></p>
+        </div>
+    </div>
+</div>
+{% block footer %}
+{% include "footer.html" %}
+{% endblock footer %}
+{% endblock page_content %}

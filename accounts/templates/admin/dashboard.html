@@ -199,7 +199,7 @@
 
   <h1 class="text-2xl font-bold mb-4 text-center">Categories List</h1>
   <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 sm:gap-2 lg:grid-cols-3 lg:gap-4">
-    {% for category in categories %}
+    {% for category in catagorys %}
     <div class="bg-white p-4 rounded-md shadow-md">
       <h2 class="text-lg font-bold mb-2 text-center">{{ category.name }}</h2>
       <p class="text-gray-500 text-sm text-center">{{ category.description |slice:":100" }}</p>

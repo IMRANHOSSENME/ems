@@ -26,20 +26,28 @@
             {% csrf_token %}
             <div>
                 <label for="username" class="block mb-1 text-gray-700 font-medium">Username</label>
-                <input type="text" id="username" name="username" required
+                <input type="text" id="username" name="username" required value="{{ form.username.value|default_if_none:'' }}"
                     class="border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+                {% if form.username.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.username.errors.0 }}</p>
+                {% endif %}
             </div>
             <div>
                 <label for="password" class="block mb-1 text-gray-700 font-medium">Password</label>
                 <input type="password" id="password" name="password" required
                     class="border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+                {% if form.password.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.password.errors.0 }}</p>
+                {% endif %}
             </div>
             <button type="submit"
                 class="bg-blue-600 hover:bg-blue-700 text-white font-semibold p-2 rounded w-full transition">Sign
                 In</button>
         </form>
+        <p class="mt-4 text-center text-gray-600">Forgot your password? <a href="{% url 'forgate_password' %}" class="text-blue-600 hover:underline">Reset it</a></p>
         <p class="mt-4 text-center text-gray-600">Create an account? <a href="{% url 'signup' %}"
                 class="text-blue-600 hover:underline">Sign Up</a></p>
+        
     </div>
 
     <script>

@@ -1,28 +1,44 @@
+from urllib import request
 from django.shortcuts import render , redirect , get_object_or_404
 from events.models import Event, Category , RSVP
-from django.contrib.auth.models import User
+from accounts.models import MyUser as User
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from accounts.views import is_admin, is_organizer, is_participant
+from django.contrib.auth.mixins import LoginRequiredMixin , PermissionRequiredMixin
+from django.views import View
 
 # Create Event
-@login_required
-def create_event(request):
-    # Role check Admin and Organizer
-    if is_admin(request.user):
-        base_template = "admin/header.html"
-    elif is_organizer(request.user):
-        base_template = "organizer/base.html"
-    else:
-        return redirect('/404')
-    
+class CreateEventView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    permission_required = ('events.add_event', 'events.add_category', 'events.add_rsvp')
+    login_url = '/signin/'
+    redirect_field_name = None
 
-    users = User.objects.all()
-    CONTEXT = {
-        'users': users,
-        'base_template': base_template,
-    }
-    if request.method == 'POST':
+    def get(self, request):
+        # Role check Admin and Organizer
+        if is_admin(request.user):
+            base_template = "admin/header.html"
+        elif is_organizer(request.user):
+            base_template = "organizer/base.html"
+        else:
+            return redirect('/404')
+
+        users = User.objects.all()
+        context = {
+            'users': users,
+            'base_template': base_template,
+        }
+        return render(request, 'create_event.html', context)
+
+    def post(self, request):
+        # Role check Admin and Organizer
+        if is_admin(request.user):
+            base_template = "admin/header.html"
+        elif is_organizer(request.user):
+            base_template = "organizer/base.html"
+        else:
+            return redirect('/404')
+
         event_name = request.POST.get('name')
         event_description = request.POST.get('description')
         event_datetime = request.POST.get('datetime')
@@ -60,24 +76,53 @@ def create_event(request):
             return redirect('/dashboard')
         else:
             messages.error(request, 'Please fill in all required fields.')
-
-    return render(request, 'create_event.html', CONTEXT)
+            users = User.objects.all()
+            context = {
+                'users': users,
+                'base_template': base_template,
+            }
+            return render(request, 'create_event.html', context)
 
 
 #Edit Event
-@login_required
-def edit_event(request, event_id):
-     # Role check Admin and Organizer
-    if is_admin(request.user):
-        base_template = "admin/header.html"
-    elif is_organizer(request.user):
-        base_template = "organizer/base.html"
-    else:
-        return redirect('/404')
+class EditEventView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    permission_required = ('events.change_event', 'events.add_rsvp', 'events.delete_rsvp')
+    login_url = '/signin/'
+    redirect_field_name = None
 
-    event = Event.objects.get(id=event_id)
-    users = User.objects.all()
-    if request.method == 'POST':
+    def get(self, request, event_id):
+        # Role check Admin and Organizer
+        if is_admin(request.user):
+            base_template = "admin/header.html"
+        elif is_organizer(request.user):
+            base_template = "organizer/base.html"
+        else:
+            return redirect('/404')
+
+        event = Event.objects.get(id=event_id)
+        users = User.objects.all()
+        selected_participants = list(RSVP.objects.filter(event=event).values_list('user_id', flat=True))
+
+        context = {
+            'event': event,
+            'users': users,
+            'selected_participants': selected_participants,
+            'base_template': base_template,
+        }
+        return render(request, 'edit_event.html', context)
+
+    def post(self, request, event_id):
+        # Role check Admin and Organizer
+        if is_admin(request.user):
+            base_template = "admin/header.html"
+        elif is_organizer(request.user):
+            base_template = "organizer/base.html"
+        else:
+            return redirect('/404')
+
+        event = Event.objects.get(id=event_id)
+        users = User.objects.all()
+
         event_name = request.POST.get('event_name')
         event_description = request.POST.get('event_description')
         event_datetime = request.POST.get('event_datetime')
@@ -108,101 +153,112 @@ def edit_event(request, event_id):
             for user_id in participants_ids:
                 print("Participant ID:", user_id)
                 if int(user_id) not in existing_user_ids:
-                    try:
-                        user = User.objects.get(id=user_id)
-                        RSVP.objects.create(event=event, user=user, status=RSVP.GOING)
-                    except User.DoesNotExist:
-                        continue
+                    RSVP.objects.create(event=event, user_id=int(user_id), status=RSVP.GOING)
 
-            # Remove unselected participants
-            for rsvp in existing_rsvps:
-                if str(rsvp.user.id) not in participants_ids:
-                    rsvp.delete()
+            # Remove participants who are no longer selected
+            for user_id in existing_user_ids:
+                if str(user_id) not in participants_ids:
+                    existing_rsvps.filter(user_id=user_id).delete()
 
             messages.success(request, 'Event updated successfully!')
             return redirect('/dashboard')
         else:
             messages.error(request, 'Please fill in all required fields.')
-    selected_participants = list(RSVP.objects.filter(event=event).values_list('user_id', flat=True))
 
-    context = {
-        'event': event,
-        'users': users,
-        'selected_participants': selected_participants,
-        'base_template': base_template,
-    }
-    return render(request, 'edit_event.html', context)
-
-
+        selected_participants = list(RSVP.objects.filter(event=event).values_list('user_id', flat=True))
+        context = {
+            'event': event,
+            'users': users,
+            'selected_participants': selected_participants,
+            'base_template': base_template,
+        }
+        return render(request, 'edit_event.html', context)
 
 #Event Details
-def event_details(request, event_id):
-     # Role check Admin and Organizer
-    if is_admin(request.user):
-        print("Unauthorized access attempt by user:Admin")
-        base_template = "admin/header.html"
-    elif is_organizer(request.user):
-        print("Unauthorized access attempt by user:Organizer")
-        base_template = "organizer/base.html"
-    else:
-        return redirect('/404')
-    
+class EventDetailsView(LoginRequiredMixin, View):
+    login_url = '/signin/'
+    redirect_field_name = None
 
-    event = Event.objects.get(id=event_id)
-    rsvps = RSVP.objects.filter(event=event)
-    going_count = rsvps.filter(status=RSVP.GOING).count()
-    interested_count = rsvps.filter(status=RSVP.INTERESTED).count()
-    user_rsvp = None
-    if request.user.is_authenticated:
-        try:
-            user_rsvp = RSVP.objects.get(event=event, user=request.user)
-        except RSVP.DoesNotExist:
-            user_rsvp = None
+    def get(self, request, event_id):
+        # Role check Admin and Organizer
+        if is_admin(request.user):
+            print("Unauthorized access attempt by user:Admin")
+            base_template = "admin/header.html"
+        elif is_organizer(request.user):
+            print("Unauthorized access attempt by user:Organizer")
+            base_template = "organizer/base.html"
+        else:
+            return redirect('/404')
 
-    CONTEXT={
-        'event': event,
-        'going_count': going_count,
-        'interested_count': interested_count,
-        'user_rsvp': user_rsvp,
-        'base_template': base_template,
-    }
-    return render(request, 'event_details.html', CONTEXT)
+        event = Event.objects.get(id=event_id)
+        rsvps = RSVP.objects.filter(event=event)
+        going_count = rsvps.filter(status=RSVP.GOING).count()
+        interested_count = rsvps.filter(status=RSVP.INTERESTED).count()
+        user_rsvp = None
+        if request.user.is_authenticated:
+            try:
+                user_rsvp = RSVP.objects.get(event=event, user=request.user)
+            except RSVP.DoesNotExist:
+                user_rsvp = None
+
+        context = {
+            'event': event,
+            'going_count': going_count,
+            'interested_count': interested_count,
+            'user_rsvp': user_rsvp,
+            'base_template': base_template,
+        }
+        return render(request, 'event_details.html', context)                                                   
 
 
 #Delete Event
-@login_required
-def delete_event(request, event_id):
-     # Role check Admin and Organizer
-    if is_admin(request.user):
-        base_template = "admin/header.html"
-    elif is_organizer(request.user):
-        base_template = "organizer/base.html"
-    else:
-        return redirect('/404')
-    
+class DeleteEventView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    permission_required = 'events.delete_event'
+    login_url = '/signin/'
+    redirect_field_name = None
 
-    event = Event.objects.get(id=event_id)
-    if request.method == 'POST':
+    def get(self, request, event_id):
+        # Role check Admin and Organizer
+        if is_admin(request.user):
+            base_template = "admin/header.html"
+        elif is_organizer(request.user):
+            base_template = "organizer/base.html"
+        else:
+            return redirect('/404')
+
+        event = get_object_or_404(Event, id=event_id)
         event.delete()
-        messages.success(request, 'Event deleted successfully!')
+        messages.success(request, 'Event deleted successfully.')
         return redirect('/dashboard')
     
 
 
 
 # Create Category by Admin and Organizer
-@login_required(redirect_field_name=None, login_url='/signin/')
-def create_category(request):
-     # Role check Admin and Organizer
-    if is_admin(request.user):
-        base_template = "admin/header.html"
-    elif is_organizer(request.user):
-        base_template = "organizer/base.html"
-    else:
-        return redirect('/404')
+class CreateCategoryView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    permission_required = 'events.add_category'
+    login_url = '/signin/'
+    redirect_field_name = None
 
+    def get(self, request):
+        # Role check Admin and Organizer
+        if is_admin(request.user):
+            base_template = "admin/header.html"
+        elif is_organizer(request.user):
+            base_template = "organizer/base.html"
+        else:
+            return redirect('/404')
+        return render(request, 'create_category.html', {'base_template': base_template})
 
-    if request.method == 'POST':
+    def post(self, request):
+        # Role check Admin and Organizer
+        if is_admin(request.user):
+            base_template = "admin/header.html"
+        elif is_organizer(request.user):
+            base_template = "organizer/base.html"
+        else:
+            return redirect('/404')
+
         category_name = request.POST.get('name')
         category_description = request.POST.get('description')
         created_by = request.user
@@ -212,56 +268,72 @@ def create_category(request):
             return redirect('/dashboard')
         else:
             messages.error(request, 'Please fill in all fields.')
-    return render(request, 'create_category.html', {'base_template': base_template})
+            return render(request, 'create_category.html', {'base_template': base_template})
 
 # Edit Category by Admin and Organizer
-@login_required(redirect_field_name=None, login_url='/signin/')
-def edit_category(request, category_id):
-     # Role check Admin and Organizer
-    if is_admin(request.user):
-        base_template = "admin/header.html"
-    elif is_organizer(request.user):
-        base_template = "organizer/base.html"
-    else:
-        return redirect('/404')
-    
+class EditCategoryView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    permission_required = 'events.change_category'
+    login_url = '/signin/'
+    redirect_field_name = None
 
-    category = Category.objects.get(id=category_id)
+    def get(self, request, category_id):
+        # Role check Admin and Organizer
+        if is_admin(request.user):
+            base_template = "admin/header.html"
+        elif is_organizer(request.user):
+            base_template = "organizer/base.html"
+        else:
+            return redirect('/404')
 
-    if request.method == 'POST':
+        category = get_object_or_404(Category, id=category_id)
+        return render(request, 'edit_category.html', {'category': category, 'base_template': base_template})
+
+    def post(self, request, category_id):
+        # Role check Admin and Organizer
+        if is_admin(request.user):
+            base_template = "admin/header.html"
+        elif is_organizer(request.user):
+            base_template = "organizer/base.html"
+        else:
+            return redirect('/404')
+
+        category = get_object_or_404(Category, id=category_id)
         category.name = request.POST.get('name', category.name)
         category.description = request.POST.get('description', category.description)
         category.save()
         messages.success(request, 'Category updated successfully.')
         return redirect('/dashboard')
 
-    return render(request, 'edit_category.html', {'category': category, 'base_template': base_template})
 
 # Delete Category by Admin and Organizer
-@login_required(redirect_field_name=None, login_url='/signin/')
-def delete_category(request, category_id):
-     # Role check Admin and Organizer
-    if is_admin(request.user):
-        base_template = "admin/header.html"
-    elif is_organizer(request.user):
-        base_template = "organizer/base.html"
-    else:
-        return redirect('/404')
-    
-    category = Category.objects.get(id=category_id)
-    category.delete()
-    messages.success(request, 'Category deleted successfully.')
-    return redirect('/dashboard')
+class DeleteCategoryView(LoginRequiredMixin, PermissionRequiredMixin, View): 
+    permission_required = 'events.delete_category'
+    login_url = '/signin/'
+    redirect_field_name = None
+
+    def get(self, request, category_id):
+        # Role check Admin and Organizer
+        if is_admin(request.user):
+            base_template = "admin/header.html"
+        elif is_organizer(request.user):
+            base_template = "organizer/base.html"
+        else:
+            return redirect('/404')
+
+        category = get_object_or_404(Category, id=category_id)
+        category.delete()
+        messages.success(request, 'Category deleted successfully.')
+        return redirect('/dashboard')                               
 
 
 # RSVP to Event
-@login_required(redirect_field_name=None, login_url='/signin/')
-def rsvp_event(request, event_id):
-    event = get_object_or_404(Event, id=event_id)
-    if request.method == 'POST':
+class RsvpEventView(LoginRequiredMixin, View):
+    login_url = '/signin/'
+    redirect_field_name = None
+
+    def post(self, request, event_id):
+        event = get_object_or_404(Event, id=event_id)
         status = request.POST.get('status')
-        print("RSVP status received:", status)
-        # Validate status
         rsvp, created = RSVP.objects.get_or_create(event=event, user=request.user)
         if rsvp.status == RSVP.GOING or rsvp.status == RSVP.INTERESTED:
             messages.error(request, 'You have already registered for this event.')
@@ -269,4 +341,4 @@ def rsvp_event(request, event_id):
             rsvp.status = status
             rsvp.save()
             messages.success(request, f'You have marked yourself as {status} for this event.')
-    return redirect('/dashboard')
+        return redirect('/dashboard')
